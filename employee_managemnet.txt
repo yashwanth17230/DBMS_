@@ -1,0 +1,159 @@
+create table DEPARTMENT(
+d_no number(10),
+d_name varchar(20),
+mgrStartdate date,
+primary key(d_no));
+
+insert into DEPARTMENT values(1,'CSE','25-nov-2010','');
+insert into DEPARTMENT values(2,'AE','05-JAN-2012','');
+insert into DEPARTMENT values(3,'ISE','10-MAR-2010','');
+insert into DEPARTMENT values(4,'AI_ML','30-MAY-2010','');
+insert into DEPARTMENT values(5,'EC','25-APR-2010','');
+
+create table EMPLOYEE(
+SSN number(20),
+Fname varchar(20),
+Lname varchar(20),
+address varchar(20),
+sex char(2),
+salary number(10),
+d_no number(10),
+primary key(SSN),
+foreign key(d_no) references DEPARTMENT(d_no),
+superSSN references EMPLOYEE(SSN));
+
+insert into EMPLOYEE(SSN,Fname,Lname,address,sex,salary,d_no) values(1010,'yashwanth','R','bangalore','M',1000000,1);
+insert into EMPLOYEE(SSN,Fname,Lname,address,sex,salary,d_no) values(1020,'Lakshmi','R','Hassan','F',1000000,2);
+insert into EMPLOYEE(SSN,Fname,Lname,address,sex,salary,d_no) values(1030,'ummarul','Kathad','manglore','M',500000,3);
+insert into EMPLOYEE(SSN,Fname,Lname,address,sex,salary,d_no) values(1040,'chinthan','mm','madikeri','M',600000,4);
+insert into EMPLOYEE(SSN,Fname,Lname,address,sex,salary,d_no) values(1050,'pratosh','py','banglore','M',500000,5);
+
+insert into EMPLOYEE(SSN,Fname,Lname,address,sex,salary,d_no) values(1070,'karthik','s','hospete','M',70000,1);
+UPDATE EMPLOYEE SET SUPERSSN=1010 WHERE d_no=1;
+
+
+UPDATE DEPARTMENT SET MGRSSN=1010 WHERE d_no=1;   
+UPDATE DEPARTMENT SET MGRSSN=1020 WHERE d_no=2; 
+UPDATE DEPARTMENT SET MGRSSN=1030 WHERE d_no=3; 
+UPDATE DEPARTMENT SET MGRSSN=1040 WHERE d_no=4; 
+UPDATE DEPARTMENT SET MGRSSN=1050 WHERE d_no=5; 
+
+
+UPDATE EMPLOYEE SET SUPERSSN=1010 WHERE d_no=1;
+UPDATE EMPLOYEE SET SUPERSSN=1020 WHERE d_no=2; 
+UPDATE EMPLOYEE SET SUPERSSN=1030 WHERE d_no=3; 
+UPDATE EMPLOYEE SET SUPERSSN=1040 WHERE d_no=4; 
+UPDATE EMPLOYEE SET SUPERSSN=1050 WHERE d_no=5;  
+
+alter Table DEPARTMENT
+ADD MGRSSN references EMPLOYEE (SSN);
+                                                      
+create table DLOCATION(
+d_no number(10),
+d_loc varchar(20),
+foreign key(d_no) references DEPARTMENT(d_no));
+
+insert into DLOCATION values(1,'computer science');
+insert into DLOCATION values(2,'aeronautical');
+insert into DLOCATION values(3,'information science');
+insert into DLOCATION values(4,'artifical intel');
+insert into DLOCATION values(5,'electronics');
+
+create table PROJECT(
+p_no number(10),
+p_name varchar(20),
+pLoaction varchar(20),
+d_no number(10),
+primary key(p_no),
+foreign key(d_no) references DEPARTMENT(d_no));
+
+insert into PROJECT values(110,'eComm','computer science',1);
+insert into PROJECT values(121,'RC plane','aeronautical',2);
+insert into PROJECT values(130,'MED_x','information science',3);
+insert into PROJECT values(145,'prediciton','artifical intel',4);
+insert into PROJECT values(147,'IoT','electronics',5);
+
+create table WORKS_ON(
+SSN number(20),
+p_no number(10),
+hours number(10),
+primary key(SSN,p_no),
+foreign key(SSN) references EMPLOYEE(SSN),
+foreign key(p_no) references PROJECT(p_no));
+
+
+insert into WORKS_ON values(1010,110,25);
+insert into WORKS_ON values(1020,121,35);
+insert into WORKS_ON values(1030,130,15);
+insert into WORKS_ON values(1040,145,20);
+insert into WORKS_ON values(1050,147,30);
+
+queries:-
+1)
+(SELECT DISTINCT P.p_no 
+FROM PROJECT P, DEPARTMENT D, EMPLOYEE E 
+WHERE E.d_no=D.d_no AND D.MGRSSN=E.SSN AND E.LNAME='R') 
+UNION (SELECT DISTINCT P1.p_no 
+FROM PROJECT P1, WORKS_ON W, EMPLOYEE E1 
+WHERE P1.p_no=W.p_no AND E1.SSN=W.SSN AND E1.LNAME='R'); 
+
+output:
+  P_NO
+----------
+       110
+       121
+       130
+       145
+       147
+
+2)
+SELECT E.Fname, E.Lname, 1.1*E.SALARY AS INCR_SAL 
+FROM EMPLOYEE E, WORKS_ON W, PROJECT P 
+WHERE E.SSN=W.SSN AND W.p_no=P.p_no AND P.p_name='RC plane';   
+
+output:
+
+FNAME                LNAME                  INCR_SAL
+-------------------- -------------------- ----------
+Lakshmi              R                       1100000
+
+3)
+SELECT SUM (E.SALARY), MAX (E.SALARY), MIN (E.SALARY), AVG (E.SALARY) 
+FROM EMPLOYEE E, DEPARTMENT D 
+WHERE E.d_no=D.d_no AND D.d_name='computer scicence'; 
+
+
+4)
+SELECT E.Fname, E.Lname 
+FROM EMPLOYEE E 
+WHERE NOT EXISTS(
+(SELECT p_no 
+FROM PROJECT 
+WHERE d_no=5) 
+MINUS(SELECT p_no 
+FROM WORKS_ON 
+WHERE E.SSN=SSN)); 
+
+OUTPUT:
+
+FNAME                LNAME
+-------------------- --------------------
+pratosh              py
+
+
+5)
+SELECT D.d_no, COUNT (*) 
+FROM DEPARTMENT D, EMPLOYEE E 
+WHERE D.d_no=E.d_no AND E.SALARY>600000 
+AND D.d_no IN (SELECT E1.d_no 
+FROM EMPLOYEE E1 
+GROUP BY E1.d_no 
+HAVING COUNT (*)>=1) 
+GROUP BY D.d_no;   
+
+OUTPUT:
+
+ D_NO   COUNT(*)
+---------- ----------
+         1          1
+         2          1
