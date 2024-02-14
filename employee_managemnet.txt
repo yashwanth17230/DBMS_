@@ -46,7 +46,8 @@ UPDATE EMPLOYEE SET SUPERSSN=1040 WHERE d_no=4;
 UPDATE EMPLOYEE SET SUPERSSN=1050 WHERE d_no=5;  
 
 alter Table DEPARTMENT
-ADD MGRSSN references EMPLOYEE (SSN);
+ADD MGRSSN references EMPLOYEE (SSN);
+
                                                       
 create table DLOCATION(
 d_no number(10),
@@ -121,6 +122,12 @@ Lakshmi              R                       1100000
 SELECT SUM (E.SALARY), MAX (E.SALARY), MIN (E.SALARY), AVG (E.SALARY) 
 FROM EMPLOYEE E, DEPARTMENT D 
 WHERE E.d_no=D.d_no AND D.d_name='computer scicence'; 
+
+output:
+
+SUM(E.SALARY) MAX(E.SALARY) MIN(E.SALARY) AVG(E.SALARY)
+------------- ------------- ------------- -------------
+      1000000       1000000       1000000       1000000
 
 
 4)
